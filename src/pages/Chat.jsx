@@ -4,14 +4,131 @@ import { useNavigate } from 'react-router-dom'
 import { 
   Send, MessageSquare, User, Bot, Sparkles, ShieldCheck, Lock, 
   Zap, ChevronRight, AlertTriangle, BookOpen, Brain, Map,
-  ArrowRight, Clock, CheckCircle2, X
+  ArrowRight, Clock, CheckCircle2, X, Tag, FlaskConical, HelpCircle, Lightbulb, List
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { generateChatResponse } from '../lib/ai'
 
 const initialMessages = [
-  { id: 1, text: "Hello! I'm your ConceptBridge AI Tutor powered by Gemini. I can help you understand complex physics, biology, math, and other concepts for your exam preparation. What are we studying today?", sender: 'ai', timestamp: new Date() },
+  { id: 1, text: "Hello! I'm your ConceptBridge AI Tutor powered by Gemini. Ask me any topic — like 'Electromagnetism', 'Integration', 'Photosynthesis' — and I'll give you a complete breakdown: definition, explanation, key topics, formulas, related concepts, and practice questions!", sender: 'ai', timestamp: new Date() },
 ]
+
+// Render a rich structured AI response
+function StructuredResponse({ data, userExam, onTopicClick }) {
+  const [expandedQ, setExpandedQ] = useState(null)
+
+  return (
+    <div className="space-y-4 text-sm">
+      {/* Definition */}
+      {data.definition && (
+        <div className="p-4 rounded-2xl border border-purple-500/30 bg-purple-500/10">
+          <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Tag size={10} /> Definition</p>
+          <p className="text-text-primary font-medium leading-relaxed">{data.definition}</p>
+        </div>
+      )}
+
+      {/* Explanation */}
+      {data.explanation && (
+        <div className="p-4 rounded-2xl border border-blue-500/30 bg-blue-500/10">
+          <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Brain size={10} /> Explanation</p>
+          <p className="text-text-muted leading-relaxed">{data.explanation}</p>
+        </div>
+      )}
+
+      {/* Key Topics */}
+      {data.keyTopics?.length > 0 && (
+        <div>
+          <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-2 flex items-center gap-1"><List size={10} /> Important Topics</p>
+          <div className="flex flex-wrap gap-2">
+            {data.keyTopics.map((t, i) => (
+              <span key={i} className="text-[10px] font-bold bg-green-500/10 text-green-300 border border-green-500/20 px-3 py-1 rounded-full">{t}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Related Topics */}
+      {data.relatedTopics?.length > 0 && (
+        <div>
+          <p className="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-2 flex items-center gap-1"><Zap size={10} /> Related Topics</p>
+          <div className="flex flex-wrap gap-2">
+            {data.relatedTopics.map((t, i) => (
+              <button
+                key={i}
+                onClick={() => onTopicClick(t)}
+                className="text-[10px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 px-3 py-1 rounded-full hover:bg-cyan-500/20 transition-colors"
+              >{t}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Formulas */}
+      {data.formulas?.length > 0 && (
+        <div>
+          <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest mb-2 flex items-center gap-1"><FlaskConical size={10} /> Formulas</p>
+          <div className="space-y-2">
+            {data.formulas.map((f, i) => (
+              <div key={i} className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                <p className="text-[10px] text-amber-400 font-black mb-0.5">{f.name}</p>
+                <p className="font-mono text-white text-sm font-bold">{f.equation}</p>
+                {f.note && <p className="text-[10px] text-text-muted mt-1">{f.note}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Example Questions */}
+      {data.exampleQuestions?.length > 0 && (
+        <div>
+          <p className="text-[9px] font-black text-pink-400 uppercase tracking-widest mb-2 flex items-center gap-1"><HelpCircle size={10} /> Practice Questions</p>
+          <div className="space-y-2">
+            {data.exampleQuestions.map((q, i) => (
+              <div key={i} className="rounded-xl border border-pink-500/20 bg-pink-500/5 overflow-hidden">
+                <button
+                  onClick={() => setExpandedQ(expandedQ === i ? null : i)}
+                  className="w-full text-left p-3 flex items-start gap-2 hover:bg-pink-500/10 transition-colors"
+                >
+                  <span className="text-pink-400 font-black text-[10px] shrink-0 mt-0.5">Q{i+1}.</span>
+                  <p className="text-text-primary text-xs font-medium flex-1">{q.question}</p>
+                  <ChevronRight size={12} className={`text-pink-400 shrink-0 mt-0.5 transition-transform ${expandedQ === i ? 'rotate-90' : ''}`} />
+                </button>
+                {expandedQ === i && (
+                  <div className="px-3 pb-3 space-y-2">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {q.options?.map((opt, j) => (
+                        <div key={j} className={`text-[10px] px-2 py-1.5 rounded-lg font-medium border ${
+                          opt === q.answer 
+                            ? 'bg-green-500/20 border-green-500/40 text-green-300' 
+                            : 'bg-white/5 border-white/10 text-text-muted'
+                        }`}>{opt}</div>
+                      ))}
+                    </div>
+                    {q.hint && (
+                      <div className="flex items-start gap-1.5 mt-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <Lightbulb size={10} className="text-amber-400 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-amber-300">{q.hint}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pro Tip */}
+      {data.proTip && (
+        <div className="p-3 rounded-xl border border-brand-primary/30 bg-brand-primary/10 flex items-start gap-2">
+          <Sparkles size={12} className="text-brand-primary shrink-0 mt-0.5" />
+          <p className="text-[11px] text-brand-primary font-medium">{data.proTip}</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // Build a learning path for any topic using prerequisite chain logic
 const buildLearningPath = (topic) => {
@@ -126,7 +243,8 @@ export default function Chat() {
       const result = await generateChatResponse(userInput, userExam, messages)
       const aiResponse = { 
         id: Date.now() + 1, 
-        text: result?.response || `Let me help you with "${userInput}". Could you provide more context?`, 
+        structured: result?.definition ? result : null,
+        text: result?.definition ? null : (result?.response || `Let me help you with "${userInput}". Could you provide more context?`),
         sender: 'ai', 
         timestamp: new Date(),
         relatedTopics: result?.relatedTopics || []
@@ -135,7 +253,7 @@ export default function Chat() {
     } catch (err) {
       const fallback = {
         id: Date.now() + 1,
-        text: `Great question about "${userInput}"! This is a key concept in your ${userExam} preparation. Let me break it down: start with the fundamental definition, then map it to standard formulas, then apply to past year questions.`,
+        text: `Great question about "${userInput}"! This is a key concept in your ${userExam} preparation.`,
         sender: 'ai',
         timestamp: new Date()
       }
@@ -157,7 +275,7 @@ export default function Chat() {
 
   const handleAITutor = async (topic) => {
     setSelectedTopic(null)
-    const userMsg = `Explain ${topic} in detail for my ${userExam} exam — cover definition, formulas, subtopics, and common mistakes.`
+    const userMsg = `Explain ${topic} in detail for my ${userExam} exam`
     const userMessage = { id: Date.now(), text: userMsg, sender: 'user', timestamp: new Date() }
     setMessages(prev => [...prev, userMessage])
     setLoading(true)
@@ -165,7 +283,8 @@ export default function Chat() {
       const result = await generateChatResponse(userMsg, userExam, messages)
       const aiResponse = {
         id: Date.now() + 1,
-        text: result?.response || `Let me explain ${topic} for your ${userExam} preparation step by step. Start with the core definition, then memorize key formulas, and finally practice MCQs.`,
+        structured: result?.definition ? result : null,
+        text: result?.definition ? null : `Let me explain ${topic} for your ${userExam} preparation step by step.`,
         sender: 'ai',
         timestamp: new Date(),
         relatedTopics: result?.relatedTopics || []
@@ -331,27 +450,22 @@ export default function Chat() {
                   }`}>
                     {m.sender === 'ai' ? <Bot size={20} className="fill-white/20" /> : <User size={20} />}
                   </div>
-                  <div className="max-w-[75%] space-y-2">
+                  <div className={`space-y-2 ${m.sender === 'ai' ? 'max-w-[85%]' : 'max-w-[75%]'}`}>
                     <div className={`p-5 rounded-3xl text-sm font-medium leading-relaxed font-sans shadow-xl border ${
                       m.sender === 'ai' 
                         ? 'bg-[var(--color-surface-card)] border-[var(--color-border)] rounded-tl-none' 
                         : 'bg-brand-primary text-white border-brand-primary/20 rounded-tr-none'
                     }`}>
-                      {m.text}
+                      {m.structured ? (
+                        <StructuredResponse 
+                          data={m.structured} 
+                          userExam={userExam}
+                          onTopicClick={(t) => setInput(`Explain ${t} for ${userExam}`)}
+                        />
+                      ) : (
+                        m.text
+                      )}
                     </div>
-                    {m.relatedTopics && m.relatedTopics.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pl-2">
-                        {m.relatedTopics.map((topic, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setInput(`Explain ${topic} for ${userExam}`)}
-                            className="text-[9px] font-bold bg-brand-primary/10 text-brand-primary px-2 py-1 rounded-full hover:bg-brand-primary/20 transition-colors"
-                          >
-                            {topic}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               ))}

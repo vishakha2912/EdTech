@@ -120,45 +120,77 @@ Provide your analysis as JSON with these exact keys:
 
 /**
  * AI Chat - Generate tutor response for the chat page
+ * Returns a richly structured educational response
  */
 export async function generateChatResponse(userMessage, exam = 'JEE', chatHistory = []) {
-  const historyContext = chatHistory.slice(-6).map(m => 
-    `${m.sender === 'user' ? 'Student' : 'Tutor'}: ${m.text}`
+  const historyContext = chatHistory.slice(-4).map(m =>
+    `${m.sender === 'user' ? 'Student' : 'Tutor'}: ${m.text || m.definition || '(structured response)'}`
   ).join('\n')
 
   const prompt = `
-You are ConceptBridge AI Tutor, a friendly and expert tutor for Indian competitive exam "${exam}".
+You are ConceptBridge AI Tutor, a world-class expert tutor for Indian competitive exam "${exam}".
+The student is asking: "${userMessage}"
 
-Your style:
-- Clear, concise, and encouraging
-- Use analogies to explain complex concepts
-- Always relate back to exam-relevant applications
-- Use mathematical notation when needed
-- Be supportive and motivating
-
-Recent conversation:
+Recent conversation context:
 ${historyContext}
 
-Student's current question: ${userMessage}
+Your task: Generate a comprehensive, well-structured educational response covering the topic asked.
 
-Respond naturally as a tutor. If the student asks about a concept, explain it step-by-step with exam-relevant examples. If they share a problem, solve it methodically. Keep your response focused and under 200 words.
+RULES:
+1. Be factually 100% accurate for ${exam} curriculum.
+2. Always include formulas with proper notation where applicable.
+3. Include at least 2 example questions (MCQ style, as asked in ${exam}).
+4. Keep explanations crisp but complete.
+5. Return ONLY valid raw JSON. No markdown formatting like \`\`\`json.
 
-Return JSON:
+Return JSON EXACTLY in this format:
 {
-  "response": "<your tutor response text>",
-  "relatedTopics": ["<related topic 1>", "<related topic 2>"],
-  "difficulty": "<easy/medium/hard based on the question>"
+  "definition": "<1-2 sentence crisp definition of the topic asked>",
+  "explanation": "<3-5 sentence conceptual explanation with intuition and analogies>",
+  "keyTopics": ["<Important subtopic 1>", "<Important subtopic 2>", "<Important subtopic 3>", "<Important subtopic 4>"],
+  "relatedTopics": ["<Related concept 1>", "<Related concept 2>", "<Related concept 3>"],
+  "formulas": [
+    { "name": "<Formula Name>", "equation": "<formula>", "note": "<what variables mean / when to use>" }
+  ],
+  "exampleQuestions": [
+    {
+      "question": "<MCQ question text>",
+      "options": ["<A>", "<B>", "<C>", "<D>"],
+      "answer": "<correct option>",
+      "hint": "<1-line reasoning hint>"
+    },
+    {
+      "question": "<MCQ question text 2>",
+      "options": ["<A>", "<B>", "<C>", "<D>"],
+      "answer": "<correct option>",
+      "hint": "<1-line reasoning hint>"
+    }
+  ],
+  "proTip": "<One powerful exam tip or trick for this topic>"
 }
 `
 
-  const result = await callGemini(prompt, 1024)
-  if (result?.response) return result
+  const result = await callGemini(prompt, 2048)
+  if (result?.definition) return result
 
-  // Fallback
+  // Fallback for when API fails
   return {
-    response: `That's a great question about "${userMessage}"! Let me break this down for you. This concept is frequently tested in ${exam} and connects to several important topics. Would you like me to walk through a specific example?`,
-    relatedTopics: ["Fundamental Concepts"],
-    difficulty: "medium"
+    definition: `${userMessage} is a fundamental concept tested in ${exam} that requires understanding of core principles.`,
+    explanation: `This topic forms an important part of the ${exam} syllabus. Understanding it requires breaking it down into its constituent concepts and building up from first principles. Focus on the underlying physics/math rather than memorizing formulas.`,
+    keyTopics: ["Fundamental Principles", "Standard Applications", "Problem Solving Techniques", "Common Variations"],
+    relatedTopics: ["Basic Concepts", "Advanced Applications", "Past Year Questions"],
+    formulas: [
+      { name: "General Relation", equation: "Refer your NCERT textbook", note: "Understand derivation for ${exam}" }
+    ],
+    exampleQuestions: [
+      {
+        question: `A standard ${exam} question on this topic would test your conceptual understanding.`,
+        options: ["Option A", "Option B", "Option C", "Option D"],
+        answer: "Option A",
+        hint: "Apply the fundamental definition directly."
+      }
+    ],
+    proTip: `In ${exam}, always derive from first principles rather than memorizing — it saves time and avoids mistakes.`
   }
 }
 
@@ -317,34 +349,3 @@ Return JSON EXACTLY in this format:
   }
 }
 
-/**
- * Legacy Razorpay integration (unchanged)
- */
-export const initRazorpay = (amount, userEmail, onSuccess) => {
-  const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_your_key',
-    amount: amount * 100,
-    currency: 'INR',
-    name: 'ConceptBridge Pro',
-    description: 'Monthly Premium Subscription',
-    image: 'https://your-app-logo.com/logo.png',
-    handler: function (response) {
-      onSuccess(response.razorpay_payment_id)
-      alert("Payment Successful! ID: " + response.razorpay_payment_id)
-    },
-    prefill: {
-      email: userEmail,
-      contact: '9999999999'
-    },
-    theme: {
-      color: '#8b5cf6'
-    }
-  }
-
-  if (window.Razorpay) {
-    const rzp1 = new window.Razorpay(options)
-    rzp1.open()
-  } else {
-    console.error('Razorpay SDK not loaded')
-  }
-}

@@ -1,5 +1,32 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+.pnp
+.pnp.js
+
+# ========================
+# Build Output
+# ========================
+dist/
+dist-ssr/
+build/
+out/
+
+# ========================
+# Environment Variables (NEVER commit these)
+# ========================
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.local
+
+# ========================
 # Logs
-logs
+# ========================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,23 +34,38 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# ========================
+# Editor / IDE
+# ========================
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
 
-.env
-.env.local
-.env.production
-.env.development
+# ========================
+# OS Generated
+# ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ========================
+# Vite / Cache
+# ========================
+*.tsbuildinfo
+.vite/
+
+# ========================
+# Misc
+# ========================
+*.pem

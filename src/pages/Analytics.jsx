@@ -30,7 +30,9 @@ import {
   History,
   Info,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  BookMarked,
+  Layout
 } from 'lucide-react'
 
 // Default fallback data if API is still loading or fails
@@ -321,6 +323,65 @@ export default function Analytics() {
               <p className="text-xs text-text-muted">Keep practicing to build your insight log.</p>
             </div>
           )}
+        </div>
+      </section>
+      
+      {/* Next-Gen Study Path */}
+      <section className="space-y-8 pt-8">
+        <div className="flex items-center justify-between">
+           <h2 className="text-3xl font-black font-sans tracking-tight flex items-center gap-3">
+              <BookMarked className="text-brand-primary" /> Personalized <span className="gradient-text">Study Path</span>
+           </h2>
+           <span className="text-[10px] font-black text-text-muted uppercase tracking-widest bg-white/5 px-4 py-2 rounded-xl">Actionable Insights</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {payload.weakTopics?.map((topic, i) => (
+            <motion.div 
+              key={i} 
+              whileHover={{ y: -10 }}
+              className="glass-card p-8 space-y-6 relative overflow-hidden group border-white/5"
+            >
+              <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-brand-primary/10 rounded-full blur-[40px] group-hover:bg-brand-primary/20 transition-colors" />
+              <div className="space-y-2 relative z-10">
+                <span className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em]">Bridge Priority {i+1}</span>
+                <h3 className="text-xl font-black leading-tight group-hover:text-brand-primary transition-colors">{topic.topic}</h3>
+                <p className="text-xs text-text-muted font-medium italic">"Current accuracy of {topic.accuracy}% indicates a fundamental misconception in the prerequisite chain."</p>
+              </div>
+              
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                  <div className="w-5 h-5 rounded bg-brand-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-[10px] font-black text-brand-primary">1</span>
+                  </div>
+                  <p className="text-[11px] font-bold text-text-muted">Review the core fundamentals of {topic.topic} in our Concepts library.</p>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                  <div className="w-5 h-5 rounded bg-brand-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-[10px] font-black text-brand-secondary">2</span>
+                  </div>
+                  <p className="text-[11px] font-bold text-text-muted">Take a targeted 10-question drill session focused solely on {topic.topic}.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 relative z-10">
+                <button className="flex-1 py-3 px-2 bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-primary/20">
+                  REFINE TOPIC
+                </button>
+                <button className="p-3 bg-white/5 text-text-muted rounded-xl hover:text-white transition-colors">
+                  <Layout size={16} />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+          {(!payload.weakTopics || payload.weakTopics.length === 0) && [1,2,3].map(i => (
+             <div key={i} className="glass-card p-12 border-dashed flex flex-col items-center justify-center text-center opacity-30">
+                <div className="w-12 h-12 rounded-full border border-dashed border-text-muted mb-4 flex items-center justify-center">
+                  <Trophy size={20} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Performance Data</p>
+             </div>
+          ))}
         </div>
       </section>
     </div>
