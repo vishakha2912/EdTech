@@ -124,4 +124,4 @@ This project is part of an academic/hackathon submission.
 
 ---
 
-Built with ❤️ by [Vishakha](https://github.com/vishakha2912)
+Built with ❤️ by [Raj](https://github.com/rajsangle1012)
